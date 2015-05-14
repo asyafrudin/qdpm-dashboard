@@ -5,10 +5,10 @@ This is a visual dashboard created for qdPM. It contains charts showing status o
 
 ## Frameworks & Libraries
 Frameworks and libraries used for development:
-* qdPM (of course)
-* CodeIgniter
-* Highcharts
-* jQuery
+* qdPM (of course) 8.3
+* Highcharts 4.1.5
+* jQuery 1.11.2
+* CodeIgniter 2.2.2
 
 ## SQL
 SQL used to fetch data from qdPM database can be found in **sql** folder.
