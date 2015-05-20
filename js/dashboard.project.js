@@ -1,5 +1,9 @@
 var ongoingStatusChart;
 var populationChart;
+var chartColors = [];
+chartColors['overdue'] = '#BB0000';
+chartColors['delayed'] = '#FFCC00';
+chartColors['ontrack'] = '#009900';
 
 $(document).ready(function() {
     // Set chart options
@@ -28,8 +32,26 @@ $(document).ready(function() {
 });
 
 function refreshChart() {
-    // Load ongoingStatusChart
+    var ontrackProject = 0; // Number of On Track projects
+    var delayedProject = 0; // Number of Delayed projects
+    var overdueProject = 0; // Number of Overdue projects
+
     $.getJSON('index.php/project/get_ongoing_status', function(json) {
+        var projectColors = []; // Status colors for each project
+        $.each(json, function(key, value) {
+            if (value[1] >= 0.5) { // On Track projects
+                projectColors.push(chartColors['ontrack']);
+                ontrackProject++;
+            } else if (value[1] >= 0) { // Delayed projects
+                projectColors.push(chartColors['delayed']);
+                delayedProject++;
+            } else { // Overdue projects
+                projectColors.push(chartColors['overdue']);
+                overdueProject++;
+            }
+        });
+
+        // Load ongoingStatusChart
         ongoingStatusChart = new Highcharts.Chart({
             chart: {
                 renderTo: 'ongoingstatus',
@@ -39,89 +61,89 @@ function refreshChart() {
                 text: 'Status of Ongoing Projects'
             },
             xAxis: {
-                categories: json.name
+                type: 'category'
             },
             yAxis: {
-                max: 2,
-                min: -1,
                 title: {
-                    text: 'Project Status'
-                }
-            },
-            series: [{
-                data: json.numeric_status,
-                name: 'Status',
-                color: '#009900',
-                negativeColor: '#BB0000'
-            }],
-        });
-    });
-
-    // Load populationChart
-    $.getJSON('index.php/project/get_population', function(json) {
-        var categories = ['Projects'];
-        var openProject = json['open']; // Number of open projects that is not overdue
-        var overdueProject = json['overdue']; // Number of overdue projects
-        var closedProject = json['closed']; // Number of closed projects
-        var maxProject = 
-            Math.ceil(Math.max(openProject, closedProject) / 10) * 10; // Max number of projects "ceil"-ed to nearest 10
-        populationChart = new Highcharts.Chart({
-            chart: {
-                renderTo: 'population',
-                type: 'bar'
-            },
-            title: {
-                text: 'Project Population'
-            },
-            xAxis: [{
-                categories: categories,
-                labels: {
-                    step: 1
-                }
-            }, { // mirror axis on right side
-                opposite: true,
-                categories: categories,
-                linkedTo: 0,
-                labels: {
-                    step: 1
-                }
-            }],
-            yAxis: {
-                title: {
-                    text: null
+                    text: 'Work/Time'
                 },
-                labels: {
-                    formatter: function () {
-                        return (Math.abs(this.value));
-                    }
-                },
-                max: maxProject,
-                min: -maxProject
+                tickInterval: 0.5
             },
             plotOptions: {
                 series: {
-                    stacking: 'normal',
-                    pointWidth: 50
-                }
-            },
-            tooltip: {
-                formatter: function () {
-                    return '<b>' + this.series.name + ' ' + this.point.category + '</b>: ' 
-                        + Highcharts.numberFormat(Math.abs(this.point.y), 0);
+                    colorByPoint: true,
+                    colors: projectColors
                 }
             },
             series: [{
-                name: 'Ongoing',
-                data: [-openProject],
-                color: '#009900'
-            }, {
-                name: 'Overdue',
-                data: [-overdueProject],
-                color: '#BB0000'
-            }, {
-                name: 'Closed/On Hold/Cancelled',
-                data: [closedProject]
-            }]
+                name: 'Score',
+                data: json
+            }],
+        });
+
+        $.getJSON('index.php/project/get_population', function(json) {
+            var closedProject = json['closed']; // Number of closed projects
+            var maxProject = 
+                Math.ceil(Math.max(ontrackProject + delayedProject + overdueProject, closedProject) / 10) * 10;
+            var populationCategories = ['Projects'];
+
+            // Load populationChart (Must be loaded after ongoingStatusChart)
+            populationChart = new Highcharts.Chart({
+                chart: {
+                    renderTo: 'population',
+                    type: 'bar'
+                },
+                title: {
+                    text: 'Project Population'
+                },
+                xAxis: [{
+                    categories: populationCategories
+                }, { // mirror axis on right side
+                    opposite: true,
+                    categories: populationCategories,
+                    linkedTo: 0
+                }],
+                yAxis: {
+                    title: {
+                        text: null
+                    },
+                    labels: {
+                        formatter: function () {
+                            return (Math.abs(this.value));
+                        }
+                    },
+                    max: maxProject,
+                    min: -maxProject
+                },
+                plotOptions: {
+                    series: {
+                        stacking: 'normal',
+                        pointWidth: 50
+                    }
+                },
+                tooltip: {
+                    formatter: function () {
+                        return '<b>' + this.series.name + ' ' + this.point.category + '</b>: ' 
+                            + Highcharts.numberFormat(Math.abs(this.point.y), 0);
+                    }
+                },
+                series: [{
+                    name: 'Overdue',
+                    data: [-overdueProject],
+                    color: chartColors['overdue']
+                }, {
+                    name: 'Delayed',
+                    data: [-delayedProject],
+                    color: chartColors['delayed']
+                }, {
+                    name: 'On Track',
+                    data: [-ontrackProject],
+                    color: chartColors['ontrack']
+                }, {
+                    name: 'Closed/On Hold/Cancelled',
+                    data: [closedProject]
+                }]
+            });
         });
     });
 }

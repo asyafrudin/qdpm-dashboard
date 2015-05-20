@@ -4,7 +4,12 @@ class Project extends CI_Controller
 {
 	public function index()
 	{
+		$data['page_title'] = 'Project Charts';
+		$data['page_script'] = 'dashboard.project.js';
+
+		$this->load->view('global_header', $data);
 		$this->load->view('project_view');
+		$this->load->view('global_footer');
 	}
 
 	public function get_ongoing_status()

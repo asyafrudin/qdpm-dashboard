@@ -24,7 +24,7 @@ class Project_model extends CI_Model
 		$i = 0;
 		foreach ($result as $value)
 		{
-			$preprocessed['name'][$i] = $value['name'];
+			$preprocessed[$i][0] = $value['name'];
 
 			if ($value['time_progress'] > 0) // If at least one task is set with start and due date)
 			{
@@ -36,11 +36,11 @@ class Project_model extends CI_Model
 					$numeric_status_adjustment += 1;
 				}
 
-				$preprocessed['numeric_status'][$i] = round(($value['work_progress'] / $value['time_progress']) - $numeric_status_adjustment, 2);
+				$preprocessed[$i][1] = round(($value['work_progress'] / $value['time_progress']) - $numeric_status_adjustment, 2);
 			}
 			else
 			{
-				$preprocessed['numeric_status'][$i] = 0; // Set status to 0 if no task has been added
+				$preprocessed[$i][1] = 0;
 			}
 
 			$i++;
@@ -59,14 +59,7 @@ class Project_model extends CI_Model
 			union
 			select 'open' as name, count(*) as total
 			from projects p
-			where p.projects_status_id = 1
-			union
-			select 'overdue' as name, count(*)
-			from (select p.id
-			from projects p inner join tasks t on p.id = t.projects_id
-			where p.projects_status_id = 1
-			group by p.id
-			having current_date > max(t.due_date)) p1"
+			where p.projects_status_id = 1"
 			);
 		$result = $query->result_array();
 
@@ -75,7 +68,6 @@ class Project_model extends CI_Model
 			$preprocessed[$value['name']] = $value['total'];
 		}
 		$preprocessed['closed'] = $preprocessed['all'] - $preprocessed['open'];
-		$preprocessed['open'] -= $preprocessed['overdue'];
 
 		return $preprocessed;
 	}

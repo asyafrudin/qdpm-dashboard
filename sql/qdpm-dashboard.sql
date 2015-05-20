@@ -5,14 +5,16 @@ from tasks t right join projects p on t.projects_id = p.id
 where p.projects_status_id = 1 
 group by p.id
 
---Get project population: open, overdue, & not opened (on hold, closed, cancelled)
+--Get number of projects
 select 'all' as name, count(*) as total
 from projects p
-union
+
+-- Get number of open projects
 select 'open' as name, count(*) as total
 from projects p
 where p.projects_status_id = 1
-union
+
+-- Get number of overdue projects
 select 'overdue' as name, count(*)
 from (select p.id
 from projects p inner join tasks t on p.id = t.projects_id
