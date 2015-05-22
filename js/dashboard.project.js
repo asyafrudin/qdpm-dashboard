@@ -62,8 +62,6 @@ function refreshChart() {
             }
         });
 
-        console.log(projectData);
-
         // Load ongoingStatusChart
         ongoingStatusChart = new Highcharts.Chart({
             chart: {
