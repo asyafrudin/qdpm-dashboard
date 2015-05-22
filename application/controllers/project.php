@@ -6,6 +6,7 @@ class Project extends CI_Controller
 	{
 		$data['page_title'] = 'Project Charts';
 		$data['page_script'] = 'dashboard.project.js';
+		$data['qdpm_url'] = $this->config->item('qdpm_url');
 
 		$this->load->view('global_header', $data);
 		$this->load->view('project_view');

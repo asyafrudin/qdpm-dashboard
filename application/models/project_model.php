@@ -24,9 +24,10 @@ class Project_model extends CI_Model
 		$i = 0;
 		foreach ($result as $value)
 		{
-			$preprocessed[$i][0] = $value['name'];
+			$preprocessed[$i][0] = $value['name']; // Project name
 
-			if ($value['time_progress'] > 0) // If at least one task is set with start and due date)
+			// Project status
+			if ($value['time_progress'] > 0) // Calculate only if there are progress in time
 			{
 				$numeric_status_adjustment = 0;
 
@@ -40,8 +41,10 @@ class Project_model extends CI_Model
 			}
 			else
 			{
-				$preprocessed[$i][1] = 0;
+				$preprocessed[$i][1] = 0; // No progress reported
 			}
+
+			$preprocessed[$i][2] = $value['id']; // Project ID
 
 			$i++;
 		}

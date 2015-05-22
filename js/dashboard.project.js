@@ -1,6 +1,6 @@
-var ongoingStatusChart;
-var populationChart;
-var chartColors = [];
+var ongoingStatusChart; // Status of Ongoing Projects chart
+var populationChart; // Project Population chart
+var chartColors = []; // Global colors for project status
 chartColors['overdue'] = '#BB0000';
 chartColors['delayed'] = '#FFCC00';
 chartColors['ontrack'] = '#009900';
@@ -8,11 +8,16 @@ chartColors['ontrack'] = '#009900';
 $(document).ready(function() {
     // Set chart options
     Highcharts.setOptions({
+        legend: {
+            itemHoverStyle: {
+                cursor: 'default'
+            }
+        },
         plotOptions: {
             series: {
                 events: {
-                    legendItemClick: function () {
-                            return false; // Disable clicking on chart legends
+                    legendItemClick: function() {
+                        return false; // Disable clicking on chart legends
                     }
                 }
             }
@@ -37,8 +42,14 @@ function refreshChart() {
     var overdueProject = 0; // Number of Overdue projects
 
     $.getJSON('index.php/project/get_ongoing_status', function(json) {
+        var projectData = [];
         var projectColors = []; // Status colors for each project
         $.each(json, function(key, value) {
+            projectData.push({
+                name: value[0],
+                y: value[1],
+                myID: value[2]
+            });
             if (value[1] >= 0.5) { // On Track projects
                 projectColors.push(chartColors['ontrack']);
                 ontrackProject++;
@@ -50,6 +61,8 @@ function refreshChart() {
                 overdueProject++;
             }
         });
+
+        console.log(projectData);
 
         // Load ongoingStatusChart
         ongoingStatusChart = new Highcharts.Chart({
@@ -72,12 +85,26 @@ function refreshChart() {
             plotOptions: {
                 series: {
                     colorByPoint: true,
-                    colors: projectColors
+                    colors: projectColors,
+                    cursor: 'pointer',
+                    point: {
+                        events: {
+                            click: function() {
+                                window.open(qdpmUrl + 'index.php/tasks?projects_id=' + this.myID, '_blank');
+                            }
+                        }
+                    }
+                }
+            },
+            tooltip: {
+                formatter: function () {
+                    return '<b>' + this.point.name + '</b><br/>' +
+                        'Work/Time Score: ' + this.point.y;
                 }
             },
             series: [{
-                name: 'Score',
-                data: json
+                name: 'Ongoing Project Status',
+                data: projectData
             }],
         });
 

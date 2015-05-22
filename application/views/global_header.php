@@ -5,11 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <meta name="description" content="qdpm visual dashboard">
+    <meta name="description" content="Visual Dashboard for qdPM">
     <meta name="author" content="Amir Syafrudin">
     <link rel="icon" href="<?php echo base_url('favicon.ico') ?>">
 
-    <title><?php echo $page_title; ?></title>
+    <title>qdPM Dashboard | <?php echo $page_title; ?></title>
 
     <!-- Bootstrap core CSS -->
     <?php echo link_tag('css/bootstrap.min.css') ?>
@@ -26,6 +26,9 @@
     <script src="<?php echo base_url('js/bootstrap.min.js') ?>"></script>
     <script src="<?php echo base_url('js/highcharts.js') ?>"></script>
     <script src="<?php echo base_url('js/'.$page_script) ?>"></script>
+    <script type="text/javascript">
+        var qdpmUrl = '<?php echo $qdpm_url; ?>';
+    </script>
 </head>
 <body>
     <nav class="navbar navbar-fixed-top">
