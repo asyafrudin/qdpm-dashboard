@@ -7,8 +7,9 @@ This is a visual dashboard created for qdPM. It contains charts showing status o
 Follow these steps to setup qdpm-dashboard:
 
 1. Install qdPM.
-2. Add a copy of CodeIgniter's database.php config file to **application/config/** tailored to suit your qdPM database configuration.
-3. Off you go!
+2. Add a copy of CodeIgniter's **database.php** config file to **application/config/** tailored to suit your qdPM database configuration.
+3. Change the 'qdpm_url' config item in **application/config/qdpm_dashboard.php** to suit your qdPM URL configuration.
+4. Off you go!
 
 ## Frameworks & Libraries
 Frameworks and libraries used for development:
