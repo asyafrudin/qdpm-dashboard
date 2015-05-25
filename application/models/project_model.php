@@ -33,8 +33,8 @@ class Project_model extends CI_Model
 
 				if ($value['time_progress'] > 100)  // If current date is bigger than due date
 				{
-					$value['time_progress'] = 100;
-					$numeric_status_adjustment += 1;
+					// Penalty!
+					$numeric_status_adjustment = 1;
 				}
 
 				$preprocessed[$i][1] = round(($value['work_progress'] / $value['time_progress']) - $numeric_status_adjustment, 2);
