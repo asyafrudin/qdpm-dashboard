@@ -31,10 +31,10 @@
     </script>
 </head>
 <body>
-    <nav class="navbar navbar-fixed-top">
-        <div class="container">
+    <nav class="navbar navbar-static-top">
+        <div class="container-fluid">
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">qdPM Visual Dashboard</a>
+                <span class="navbar-brand">qdPM Visual Dashboard</span>
             </div>
         </div>
     </nav>

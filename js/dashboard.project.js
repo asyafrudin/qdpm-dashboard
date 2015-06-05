@@ -66,7 +66,7 @@ function refreshChart() {
         ongoingStatusChart = new Highcharts.Chart({
             chart: {
                 renderTo: 'ongoingstatus',
-                type: 'column'
+                type: 'bar'
             },
             title: {
                 text: 'Status of Ongoing Projects'
@@ -116,7 +116,7 @@ function refreshChart() {
             populationChart = new Highcharts.Chart({
                 chart: {
                     renderTo: 'population',
-                    type: 'bar'
+                    type: 'column'
                 },
                 title: {
                     text: 'Project Population'
