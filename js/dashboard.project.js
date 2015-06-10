@@ -84,7 +84,11 @@ function refreshChart() {
                 series: {
                     colorByPoint: true,
                     colors: projectColors,
-                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        allowOverlap: true
+                    },
+                    cursor: 'pointer', // Added click handler for each bar/column in series
                     point: {
                         events: {
                             click: function() {
