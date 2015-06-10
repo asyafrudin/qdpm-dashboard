@@ -95,7 +95,7 @@ function refreshChart() {
                 }
             },
             tooltip: {
-                formatter: function () {
+                formatter: function() {
                     return '<b>' + this.point.name + '</b><br/>' +
                         'Work/Time Score: ' + this.point.y;
                 }
@@ -109,7 +109,8 @@ function refreshChart() {
         $.getJSON('index.php/project/get_population', function(json) {
             var closedProject = json['closed']; // Number of closed projects
             var maxProject = 
-                Math.ceil(Math.max(ontrackProject + delayedProject + overdueProject, closedProject) / 10) * 10;
+                Math.ceil(Math.max(ontrackProject + delayedProject + overdueProject, closedProject) / 10) * 10 + 5;
+                // The "+ 5" above was simply to prevent stackLabels from being hidden when maxProject is a multiple of 10
             var populationCategories = ['Projects'];
 
             // Load populationChart (Must be loaded after ongoingStatusChart)
@@ -131,10 +132,16 @@ function refreshChart() {
                 yAxis: {
                     title: {
                         text: null
-                    },
+                    },                    
                     labels: {
-                        formatter: function () {
-                            return (Math.abs(this.value));
+                        formatter: function() {
+                            return Math.abs(this.value);
+                        }
+                    },
+                    stackLabels: {
+                        enabled: true,
+                        formatter: function() {
+                            return "Total: " + Math.abs(this.total);
                         }
                     },
                     max: maxProject,
@@ -143,11 +150,17 @@ function refreshChart() {
                 plotOptions: {
                     series: {
                         stacking: 'normal',
-                        pointWidth: 50
+                        pointWidth: 100,
+                        dataLabels: {
+                            enabled: true,
+                            formatter: function() {
+                                return Math.abs(this.y);
+                            }
+                        }
                     }
                 },
                 tooltip: {
-                    formatter: function () {
+                    formatter: function() {
                         return '<b>' + this.series.name + ' ' + this.point.category + '</b>: ' 
                             + Highcharts.numberFormat(Math.abs(this.point.y), 0);
                     }
