@@ -2,30 +2,33 @@
 
 class Project extends CI_Controller
 {
-	public function index()
-	{
-		$data['page_title'] = 'Project Charts';
-		$data['page_script'] = 'dashboard.project.js';
-		$data['qdpm_url'] = $this->config->item('qdpm_url');
+    public function index()
+    {
+        $this->load->model('project_model');
+        $project_types = $this->project_model->get_project_types();
 
-		$this->load->view('global_header', $data);
-		$this->load->view('project_view');
-		$this->load->view('global_footer');
-	}
+        $content_data['project_types'] = $project_types;
+        $header_data['page_title'] = 'Project Charts';
+        $header_data['page_script'] = 'dashboard.project.js';
+        $header_data['qdpm_url'] = $this->config->item('qdpm_url');
 
-	public function get_ongoing_status()
-	{
-		$this->load->model('project_model');
-		$ongoing_status = $this->project_model->get_ongoing_status();
+        $this->load->view('global_header', $header_data);
+        $this->load->view('project_view', $content_data);
+    }
 
-		echo json_encode($ongoing_status, JSON_NUMERIC_CHECK);
-	}
+    public function get_ongoing_status($project_type)
+    {
+        $this->load->model('project_model');
+        $ongoing_status = $this->project_model->get_ongoing_status($project_type);
 
-	public function get_population()
-	{
-		$this->load->model('project_model');
-		$population = $this->project_model->get_population();
+        echo json_encode($ongoing_status, JSON_NUMERIC_CHECK);
+    }
 
-		echo json_encode($population, JSON_NUMERIC_CHECK);
-	}
+    public function get_population($project_type)
+    {
+        $this->load->model('project_model');
+        $population = $this->project_model->get_population($project_type);
+
+        echo json_encode($population, JSON_NUMERIC_CHECK);
+    }
 }

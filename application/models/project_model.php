@@ -2,76 +2,114 @@
 
 class Project_model extends CI_Model
 {
-	function __construct()
-	{
-		parent::__construct();
-	}
+    function __construct()
+    {
+        parent::__construct();
+    }
 
-	function get_ongoing_status()
-	{
-		$this->load->database();
+    function get_ongoing_status($project_type)
+    {
+        $this->load->database();
 
-		$query = $this->db->query(
-			'select p.id, p.name, ifnull(ceiling(sum(t.progress) / count(t.id)), 0) as work_progress, 
-				ifnull(ceiling((current_date - min(t.start_date)) / (max(t.due_date) - min(t.start_date)) * 100), 0) as time_progress 
-			from tasks t right join projects p on t.projects_id = p.id 
-			where p.projects_status_id = 1 
-			group by p.id
-			order by p.name'
-			);
-		$result = $query->result_array();
+        // Set project type
+        $project_type_filter = '';
+        if ($project_type > 0)
+        {
+            $project_type_filter = ' and p.projects_types_id = '.$this->db->escape($project_type);
+        }
 
-		$i = 0;
-		foreach ($result as $value)
-		{
-			$preprocessed[$i][0] = $value['name']; // Project name
+        $query = $this->db->query(
+            'select p.id, p.name, ifnull(ceiling(sum(t.progress) / count(t.id)), 0) as work_progress, 
+                ifnull(ceiling((current_date - min(t.start_date)) / (max(t.due_date) - min(t.start_date)) * 100), 0) as time_progress 
+            from tasks t right join projects p on t.projects_id = p.id 
+            where p.projects_status_id = 1'.$project_type_filter.' '.
+            'group by p.id
+            order by p.name'
+            );
+        $result = $query->result_array();
 
-			// Project status
-			if ($value['time_progress'] > 0) // Calculate only if there are progress in time
-			{
-				$numeric_status_adjustment = 0;
+        $i = 0;
+        $preprocessed = [];
+        foreach ($result as $value)
+        {
+            $preprocessed[$i][0] = $value['name']; // Project name
 
-				if ($value['time_progress'] > 100)  // If current date is bigger than due date
-				{
-					// Penalty!
-					$numeric_status_adjustment = 1;
-				}
+            // Project status
+            if ($value['time_progress'] > 0) // Calculate only if there are progress in time
+            {
+                $numeric_status_adjustment = 0;
 
-				$preprocessed[$i][1] = round(($value['work_progress'] / $value['time_progress']) - $numeric_status_adjustment, 2);
-			}
-			else
-			{
-				$preprocessed[$i][1] = 0; // No progress reported
-			}
+                if ($value['time_progress'] > 100)  // If current date is bigger than due date
+                {
+                    // Penalty!
+                    $numeric_status_adjustment = 1;
+                }
 
-			$preprocessed[$i][2] = $value['id']; // Project ID
+                $preprocessed[$i][1] = round(($value['work_progress'] / $value['time_progress']) - $numeric_status_adjustment, 2);
+            }
+            else
+            {
+                $preprocessed[$i][1] = 0; // No progress reported
+            }
 
-			$i++;
-		}
+            $preprocessed[$i][2] = $value['id']; // Project ID
 
-		return $preprocessed;
-	}
+            $i++;
+        }
 
-	function get_population()
-	{
-		$this->load->database();
+        // Sorts by work/time value (descending)
+        usort($preprocessed, function($a, $b) {
+            if ($a[1] < $b[1]) {
+                return 1;
+            } else if ($a[1] > $b[1]) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
 
-		$query = $this->db->query(
-			"select 'all' as name, count(*) as total
-			from projects p
-			union
-			select 'open' as name, count(*) as total
-			from projects p
-			where p.projects_status_id = 1"
-			);
-		$result = $query->result_array();
+        return $preprocessed;
+    }
 
-		foreach ($result as $value)
-		{
-			$preprocessed[$value['name']] = $value['total'];
-		}
-		$preprocessed['closed'] = $preprocessed['all'] - $preprocessed['open'];
+    function get_population($project_type)
+    {
+        $this->load->database();
 
-		return $preprocessed;
-	}
+        // Set project type
+        $project_type_filter = '';
+        if ($project_type > 0)
+        {
+            $project_type_filter = 'where p.projects_types_id = '.$this->db->escape($project_type);
+        }
+
+        $query = $this->db->query(
+            'select s.name, count(s.name) as total
+            from projects p inner join projects_status s on p.projects_status_id = s.id '
+            .$project_type_filter.' '.
+            'group by s.name'
+            );
+        $result = $query->result_array();
+
+        $preprocessed = [];
+        foreach ($result as $value)
+        {
+            $preprocessed[$value['name']] = $value['total'];
+        }
+
+        return $preprocessed;
+    }
+
+    function get_project_types()
+    {
+        $this->load->database();
+
+        $query = $this->db->query(
+            'select id, name 
+            from projects_types p
+            order by p.sort_order asc'
+            );
+        $result = $query->result_array();
+
+        return $result;
+    }
 }
