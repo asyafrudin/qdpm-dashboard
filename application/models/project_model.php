@@ -83,7 +83,7 @@ class Project_model extends CI_Model
         }
 
         $query = $this->db->query(
-            'select s.name, count(s.name) as total
+            'select s.id, s.name, count(s.name) as total
             from projects p inner join projects_status s on p.projects_status_id = s.id '
             .$project_type_filter.' '.
             'group by s.name'
@@ -93,7 +93,8 @@ class Project_model extends CI_Model
         $preprocessed = [];
         foreach ($result as $value)
         {
-            $preprocessed[$value['name']] = $value['total'];
+            $preprocessed[$value['name']]['total'] = $value['total'];
+            $preprocessed[$value['name']]['id'] = $value['id'];
         }
 
         return $preprocessed;

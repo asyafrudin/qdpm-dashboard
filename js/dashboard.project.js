@@ -104,7 +104,7 @@ $(document).ready(function() {
                         point: {
                             events: {
                                 click: function() {
-                                    window.open(qdpmUrl + 'index.php/tasks?projects_id=' + this.myID, '_blank');
+                                    window.open(qdpmUrl + 'index.php/projectsComments?projects_id=' + this.myID, '_blank');
                                 }
                             }
                         }
@@ -112,8 +112,8 @@ $(document).ready(function() {
                 },
                 tooltip: {
                     useHTML: true,
-                    formatter: function() {
-                        return '<a href="' + qdpmUrl + 'index.php/tasks?projects_id=' + this.point.myID + '" target="_blank">' +
+                    formatter: function() { // Added link to open project information
+                        return '<a href="' + qdpmUrl + 'index.php/projectsComments?projects_id=' + this.point.myID + '" target="_blank">' +
                             '<b>' + this.point.name + '</b> ' +                             
                             '<span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a><br/>' +
                             'Work/Time Score: ' + this.point.y;
@@ -126,9 +126,18 @@ $(document).ready(function() {
             });
 
             $.getJSON('index.php/project/get_population/' + projectType, function(json) {
-                var closedProject = (typeof json['Closed'] != "undefined") ? json['Closed'] : 0; // Number of closed projects
-                var onholdProject = (typeof json['On Hold'] != "undefined") ? json['On Hold'] : 0; // Number of on hold projects
-                var cancelledProject = (typeof json['Cancelled'] != "undefined") ? json['Cancelled'] : 0; // Number of cancelled projects
+                var closedProject = 
+                    (typeof json['Closed'] != "undefined") ? json['Closed']['total'] : 0; // Number of closed projects
+                var closedProjectStatusID = 
+                    (typeof json['Closed'] != "undefined") ? json['Closed']['id'] : 0; // ID of closed projects
+                var onholdProject = 
+                    (typeof json['On Hold'] != "undefined") ? json['On Hold']['total'] : 0; // Number of on hold projects
+                var onholdProjectStatusID = 
+                    (typeof json['On Hold'] != "undefined") ? json['On Hold']['id'] : 0; // ID of on hold projects
+                var cancelledProject = 
+                    (typeof json['Cancelled'] != "undefined") ? json['Cancelled']['total'] : 0; // Number of cancelled projects
+                var cancelledProjectStatusID = 
+                    (typeof json['Cancelled'] != "undefined") ? json['Cancelled']['id'] : 0; // ID of cancelled projects
                 var maxProject = 
                     Math.ceil(Math.max(ontrackProject + delayedProject + overdueProject + onholdProject, 
                                         closedProject + cancelledProject) / 10) * 10 + 5;
@@ -168,7 +177,7 @@ $(document).ready(function() {
                         stackLabels: {
                             enabled: true,
                             formatter: function() {
-                                return "Total: " + Math.abs(this.total);
+                                return "Total " + ((this.total < 0) ? "Ongoing" : "Closed") + " Projects: " + Math.abs(this.total);
                             }
                         },
                         max: maxProject,
@@ -184,38 +193,59 @@ $(document).ready(function() {
                                     if (this.y == 0 ) return ''; // Don't show dataLabel if value is 0
                                     return Math.abs(this.y);
                                 }
+                            },
+                            point: { // Added click handler for each bar/column in series
+                                events: {
+                                    click: function() {
+                                        if (this.myStatusID > 0)
+                                            window.open(qdpmUrl + 'index.php/projects?filter_by[ProjectsStatus]=' + this.myStatusID +
+                                                '&filter_by[ProjectsTypes]=' + $('#project-type').val(), 
+                                                '_blank');
+                                    }
+                                }
                             }
                         }
                     },
                     tooltip: {
-                        formatter: function() {
-                            return '<b>' + this.series.name + ' ' + this.point.category + '</b>: ' 
-                                + Highcharts.numberFormat(Math.abs(this.point.y), 0);
+                        useHTML: true,
+                        formatter: function() { // Added link to open list of projects based on project status and project type
+                            var tooltipText = '<b>' + this.series.name + ' ' + this.point.category + '</b>: ';
+                            if (this.point.myStatusID > 0) {
+                                tooltipText = '<a href="' + qdpmUrl + 'index.php/projects?filter_by[ProjectsStatus]=' + this.point.myStatusID + 
+                                    '&filter_by[ProjectsTypes]=' + $('#project-type').val() +
+                                    '" target="_blank">' + tooltipText +
+                                    '<span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a>:';
+                            }
+                            tooltipText += Highcharts.numberFormat(Math.abs(this.point.y), 0);
+                            return  tooltipText;
                         }
                     },
                     series: [{
                         name: 'Overdue',
-                        data: [-overdueProject],
+                        data: [{y: -overdueProject, myStatusID: 0}],
                         color: chartColors['overdue']
                     }, {
                         name: 'Delayed',
-                        data: [-delayedProject],
+                        data: [{y: -delayedProject, myStatusID: 0}],
                         color: chartColors['delayed']
                     }, {
                         name: 'On Track',
-                        data: [-ontrackProject],
+                        data: [{y: -ontrackProject, myStatusID: 0}],
                         color: chartColors['ontrack']
                     }, {
-                        name: 'On Hold',
-                        data: [onholdProject],
-                        color: chartColors['onhold']
-                    }, {
                         name: 'Cancelled',
-                        data: [cancelledProject],
-                        color: chartColors['cancelled']
+                        data: [{y: cancelledProject, myStatusID: cancelledProjectStatusID}],
+                        color: chartColors['cancelled'],
+                        cursor: 'pointer'
+                    }, {
+                        name: 'On Hold',
+                        data: [{y: onholdProject, myStatusID: onholdProjectStatusID}],
+                        color: chartColors['onhold'],
+                        cursor: 'pointer'
                     }, {
                         name: 'Closed',
-                        data: [closedProject]
+                        data: [{y: closedProject, myStatusID: closedProjectStatusID}],
+                        cursor: 'pointer'
                     }]
                 });
             });
